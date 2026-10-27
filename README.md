@@ -23,7 +23,8 @@ This repository is the lab from the film **[PHP2Shell: Patched PHP Can Still Be 
 | `www/runtime.php` | A three-field probe that reports what the **web** interpreter runs: version, SAPI, upload-progress setting. Lab only. |
 | `php2shell-check.sh` | Asks the web runtime (not your shell's `php -v`) which PHP serves requests and compares it with the fixed release for that branch. |
 | `scripts/restart-trap-demo.sh` | The restart trap, step by step: pull the fix, check (still vulnerable), restart, check (patched). Fails loudly if any step behaves differently. |
-| `scripts/hunt.sh` | A read-only first look on a host that ran a vulnerable build: changed files since 17 Oct, POSTs to `.php`, leftover session files, shells spawned by the web server. |
+| `scripts/hunt.sh` | A read-only first look on a host that ran a vulnerable build: changed files since 17 Oct, every POST in the current and rotated access logs (front controllers hide `.php` in the URI), session files in PHP's real `session.save_path`, and shells, interpreters or download tools running as the web-server user. |
+| `tests/parse-test.sh` | Offline tests for the check script: pretty and compact JSON, Surý and Debian build strings, EOL branches, an unreadable probe. |
 | `.github/workflows/ci.yml` | Boots both runtimes on every push and proves the lab: legacy must exit `1` (VULNERABLE), patched must exit `0` (PATCHED), the restart trap must reproduce end to end. |
 
 ## Run it
@@ -61,13 +62,14 @@ web runtime : PHP 8.4.27 (apache2handler)
 PHP2Shell   : PATCHED (>= 8.4.27)
 ```
 
-Exit codes from `php2shell-check.sh`: `0` patched, `1` vulnerable, `2` end-of-life branch (8.1 and older have no official release: vendor backport, upgrade, or take it offline).
+Exit codes from `php2shell-check.sh`: `0` patched, `1` vulnerable, `2` end-of-life branch (8.1 and older have no official release: vendor backport, upgrade, or take it offline), `3` the probe could not be read. It reads compact or pretty-printed JSON and compares only the upstream part of distro build strings such as `8.4.27-1+ubuntu24.04.1+deb.sury.org+1`; `make test` runs the parser against those cases offline.
 
 ## On a real server
 
 The lab restarts a container. On a real server the same step is restarting whatever runs PHP for the web, after the update:
 
 ```bash
+sudo apt-get install --only-upgrade 'php8.4*'   # Debian/Ubuntu: upgrade the whole php8.4 set, not one package
 sudo systemctl restart php8.4-fpm     # PHP-FPM (nginx and most modern stacks; use your version's unit name)
 sudo systemctl restart apache2        # Apache with mod_php (httpd on RHEL-family systems)
 docker compose up -d --build          # containers: rebuild from the patched image, don't just pull it

@@ -8,7 +8,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: shellcheck
-        run: shellcheck php2shell-check.sh scripts/*.sh
+        run: shellcheck php2shell-check.sh scripts/*.sh tests/*.sh
+      - name: parser tests (pretty/compact JSON, distro build strings, EOL, bad probe)
+        run: ./tests/parse-test.sh
       - name: boot both runtimes (loopback only)
         run: |
           docker compose up -d

@@ -1,4 +1,4 @@
-.PHONY: up check demo hunt down lint
+.PHONY: up check demo hunt down lint test
 up:     ## start both containers (127.0.0.1:8081 legacy, :8082 patched)
 	docker compose up -d
 check:  ## ask each web runtime which PHP it serves
@@ -11,4 +11,6 @@ hunt:   ## read-only first look at the legacy container
 down:   ## stop and remove everything
 	docker compose down --remove-orphans
 lint:
-	shellcheck php2shell-check.sh scripts/*.sh
+	shellcheck php2shell-check.sh scripts/*.sh tests/*.sh
+test:   ## offline parser tests
+	./tests/parse-test.sh
