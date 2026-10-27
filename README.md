@@ -11,7 +11,7 @@ The trap this lab is about: a package on disk does not change a process that is 
 
 ![The restart trap: the patched image is pulled and the check still says VULNERABLE; after the restart it reads PATCHED](docs/restart-trap.gif)
 
-This repository is the lab from the film **"PHP2Shell: Patched PHP Can Still Be Vulnerable (Here's Why)"** on the Qualixar AI YouTube channel.
+This repository is the lab from the film **[PHP2Shell: Patched PHP Can Still Be Vulnerable (Here's Why)](https://youtu.be/VzMjup_p0f0)** on the Qualixar AI YouTube channel (22 minutes: the week it broke, the lab, and the loop to work through tonight).
 
 ---
 
