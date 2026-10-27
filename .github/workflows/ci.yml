@@ -1,0 +1,31 @@
+name: lab
+on: [push, pull_request, workflow_dispatch]
+permissions: { contents: read }
+jobs:
+  prove:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: shellcheck
+        run: shellcheck php2shell-check.sh scripts/*.sh
+      - name: boot both runtimes (loopback only)
+        run: |
+          docker compose up -d
+          for p in 8081 8082; do for _ in $(seq 1 30); do curl -fsS http://127.0.0.1:$p/runtime.php && break; sleep 1; done; done
+      - name: legacy must report VULNERABLE (exit 1)
+        run: |
+          set +e; ./php2shell-check.sh http://127.0.0.1:8081/runtime.php; rc=$?; set -e
+          test "$rc" -eq 1
+      - name: patched must report PATCHED (exit 0) with the interim setting applied
+        run: |
+          out="$(./php2shell-check.sh http://127.0.0.1:8082/runtime.php)"; echo "$out"
+          grep -q 'PATCHED' <<<"$out"; grep -q 'interim setting applied' <<<"$out"
+      - name: reset legacy, then prove the restart trap end to end
+        run: |
+          docker compose down
+          ./scripts/restart-trap-demo.sh
+      - name: hunt script runs read-only
+        run: ./scripts/hunt.sh legacy
+      - if: always()
+        run: docker compose down --remove-orphans

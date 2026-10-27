@@ -1,0 +1,16 @@
+# PHP2Shell defender lab: local only, bound to 127.0.0.1, no exploit code.
+# "legacy" runs the last pre-fix 8.4 build, "patched" runs the fixed 8.4.27.
+services:
+  legacy:
+    image: php:${LEGACY_TAG:-8.4.26-apache}
+    ports: ["127.0.0.1:8081:80"]
+    volumes:
+      - ./www:/var/www/html:ro
+      - ./logs/legacy:/var/log/apache2
+  patched:
+    image: php:${PATCHED_TAG:-8.4.27-apache}
+    ports: ["127.0.0.1:8082:80"]
+    volumes:
+      - ./www:/var/www/html:ro
+      - ./logs/patched:/var/log/apache2
+      - ./ini/zz-upload-progress.ini:/usr/local/etc/php/conf.d/zz-upload-progress.ini:ro
